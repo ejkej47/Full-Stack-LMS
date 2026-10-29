@@ -72,11 +72,19 @@ export default async function LessonPage({ params }) {
   const currentPath = `/course/${courseSlug}/module/${moduleSlug}/lesson/${lessonSlug}`
   const toggleAction = toggleLessonComplete.bind(null, lesson.id, isCompleted, currentPath)
 
+  // Prva lekcija koristi optimizovan MP4 u svim okruženjima.
+  const usePrototypeVideo = courseSlug === 'emocionalna-pismenost'
+    && moduleSlug === 'samopouzdanje'
+    && lessonSlug === 'temelji-razumevanja'
+  const displayLesson = usePrototypeVideo
+    ? { ...lesson, path: '/videos/EP_video_prototip_web.mp4' }
+    : lesson
+
   return (
     <LessonClient 
       courseSlug={courseSlug}
       moduleSlug={moduleSlug}
-      lesson={lesson}
+      lesson={displayLesson}
       moduleTitle={moduleData?.title}
       allModuleLessons={allModuleLessons || []}
       currentLessonIndex={currentLessonIndex}

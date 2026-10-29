@@ -5,6 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { FaCheck, FaLock, FaPlay, FaPen, FaPuzzlePiece, FaArrowLeft, FaArrowRight, FaListUl, FaTimes } from "react-icons/fa";
+import AssertivenessQuestionnaire from "@/components/lessons/asertivnost/AssertivenessQuestionnaire";
+import CommunicationStylesExercise from "@/components/lessons/asertivnost/CommunicationStylesExercise";
+import SelfRightsExercise from "@/components/lessons/asertivnost/SelfRightsExercise";
+import AssertiveRightsExercise from "@/components/lessons/asertivnost/AssertiveRightsExercise";
+import ComplimentExercise from "@/components/lessons/asertivnost/ComplimentExercise";
+import AssertiveMatrix from "@/components/lessons/asertivnost/AssertiveMatrix";
+import VideoPlayer from "@/components/course/VideoPlayer";
+
+const interactiveLessons = {
+  "kviz-koliko-ste-asertivni": AssertivenessQuestionnaire,
+  "vezba-stilovi-komunikacije": CommunicationStylesExercise,
+  "vezba-vratite-sebi-pravo": SelfRightsExercise,
+  "vezba-asertivna-prava": AssertiveRightsExercise,
+  "vezba-pohvale": ComplimentExercise,
+  "vezba-asertivna-mreza": AssertiveMatrix,
+};
 
 export default function LessonClient({
   courseSlug,
@@ -23,6 +39,7 @@ export default function LessonClient({
 }) {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const InteractiveLesson = moduleSlug === "samopouzdanje" ? interactiveLessons[lesson.slug] : null;
 
   const progressPercentage = allModuleLessons.length > 0 
     ? ((currentLessonIndex + 1) / allModuleLessons.length) * 100 
@@ -194,19 +211,24 @@ export default function LessonClient({
               </div>
             </div>
 
-            {/* VIDEO PLAYER ILI ZAKLJUČAN EKRAN */}
+            {/* Interaktivna vežba ili video plejer */}
+            {hasAccess && InteractiveLesson ? <InteractiveLesson /> : (
             <div className="relative group p-1.5 md:p-3 rounded-2xl md:rounded-[2.5rem] bg-[var(--accent-soft)]">
               <div className="aspect-video w-full overflow-hidden rounded-[1rem] md:rounded-[2rem] bg-black relative z-10">
                 {hasAccess ? (
                   lesson.content_type === "video" || !lesson.content_type ? (
                     lesson.path ? (
-                      <iframe
-                        className="w-full h-full"
-                        src={`https://www.youtube.com/embed/${lesson.path}?rel=0&modestbranding=1&iv_load_policy=3`}
-                        title={lesson.title}
-                        frameBorder="0"
-                        allowFullScreen
-                      ></iframe>
+                      lesson.path.toLowerCase().endsWith(".mp4") ? (
+                        <VideoPlayer src={lesson.path} title={lesson.title} />
+                      ) : (
+                        <iframe
+                          className="w-full h-full"
+                          src={`https://www.youtube.com/embed/${lesson.path}?rel=0&modestbranding=1&iv_load_policy=3`}
+                          title={lesson.title}
+                          frameBorder="0"
+                          allowFullScreen
+                        ></iframe>
+                      )
                     ) : (
                       <div className="flex h-full items-center justify-center text-white/50 italic p-4 text-center text-xs md:text-sm">
                         Video ID nije unet u bazu.
@@ -235,13 +257,14 @@ export default function LessonClient({
                 )}
               </div>
             </div>
+            )}
 
             {/* KONTROLE & OPIS */}
             <div className="bg-white p-5 md:p-10 rounded-2xl md:rounded-3xl border border-[var(--accent-soft)] shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8 pb-6 md:pb-8 border-b border-[var(--accent-soft)]">
                 <div>
-                  <h3 className="text-xl md:text-2xl font-extrabold tracking-tight mb-1 md:mb-2">O lekciji</h3>
-                  <p className="opacity-60 text-xs md:text-sm font-medium">Dodatni materijali i beleške</p>
+                  <h3 className="text-xl md:text-2xl font-extrabold tracking-tight mb-1 md:mb-2">{InteractiveLesson ? "Napredak u lekciji" : "O lekciji"}</h3>
+                  <p className="opacity-60 text-xs md:text-sm font-medium">{InteractiveLesson ? "Označite kada završite vežbu" : "Dodatni materijali i beleške"}</p>
                 </div>
 
                 {isUserLoggedIn && hasAccess && (
@@ -264,9 +287,9 @@ export default function LessonClient({
                 )}
               </div>
 
-              <div className="prose prose-sm md:prose-lg max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-a:text-[var(--primary)] opacity-90 leading-relaxed whitespace-pre-wrap">
+              {(lesson.content || !InteractiveLesson) && <div className="prose prose-sm md:prose-lg max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-a:text-[var(--primary)] opacity-90 leading-relaxed whitespace-pre-wrap">
                 {lesson.content || <span className="italic opacity-50 text-sm md:text-base">Nema dodatnog teksta za ovu lekciju.</span>}
-              </div>
+              </div>}
             </div>
 
           </div>
